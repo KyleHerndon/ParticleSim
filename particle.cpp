@@ -1,6 +1,7 @@
 #include "particle.h"
 
 #include <vector>
+#include <cmath>
 
 Particle::Particle(int dim, double m) {
 	position = std::vector<double>(dim, 0);
@@ -35,4 +36,13 @@ void Particle::setAcceleration(std::vector<double> accel) {
 
 double Particle::getMass() {
 	return mass;
+}
+
+double Particle::getEnergy() {
+	double energy = 0;
+	for(double component : velocity) {
+		energy += std::pow(component, 2);
+	}
+	energy *= mass * .5;
+	return energy;
 }

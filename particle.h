@@ -1,4 +1,4 @@
-#include <vector>
+#include <valarray>
 
 class Particle {
 	public:
@@ -10,6 +10,7 @@ class Particle {
 		std::vector<double> getAcceleration();
 		void setAcceleration(std::vector<double> accel);
 		double getMass();
+		double getEnergy();
 	private:
 		std::vector<double> position;
 		std::vector<double> velocity;
