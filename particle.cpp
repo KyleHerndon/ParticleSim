@@ -2,35 +2,37 @@
 
 #include <vector>
 
-Particle::Particle(void) {
-	position = std::vector<double>();
-	velocity = std::vector<double>();
-	mass = 0;
-}
-
-Particle::Particle(double x, double y, double z) {
-	Particle();
-	position.assign(0, x);
-	position.assign(1, y);
-	position.assign(2, z);
+Particle::Particle(int dim, double m) {
+	position = std::vector<double>(dim, 0);
+	velocity = std::vector<double>(dim, 0);
+	acceleration = std::vector<double>(dim, 0);
+	mass = m;
 }
 
 std::vector<double> Particle::getPosition() {
 	return position;
 }
 
+void Particle::setPosition(std::vector<double> pos) {
+	position = pos;
+}
+
 std::vector<double> Particle::getVelocity() {
 	return velocity;
 }
 
-double Particle::getMass() {
-	return mass;
+void Particle::setVelocity(std::vector<double> vel) {
+	velocity = vel;
 }
 
-double Particle::getDistance(Particle other) {
-	double ret = 0;
-	for (unsigned i = 0; i < position.size(); i++) {
-		ret += (position[i]*position[i]+other.position[i]*other.position[i]);
-	}
-	return ret;
+std::vector<double> Particle::getAcceleration() {
+	return acceleration;
+}
+
+void Particle::setAcceleration(std::vector<double> accel) {
+	acceleration = accel;
+}
+
+double Particle::getMass() {
+	return mass;
 }

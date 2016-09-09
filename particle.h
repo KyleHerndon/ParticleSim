@@ -2,14 +2,17 @@
 
 class Particle {
 	public:
-		Particle();
-		Particle(double x, double y, double z);
+		Particle(int dim, double m);
 		std::vector<double> getPosition();
+		void setPosition(std::vector<double> pos);
 		std::vector<double> getVelocity();
-		double getDistance(Particle other);
+		void setVelocity(std::vector<double> vel);
+		std::vector<double> getAcceleration();
+		void setAcceleration(std::vector<double> accel);
 		double getMass();
 	private:
 		std::vector<double> position;
 		std::vector<double> velocity;
+		std::vector<double> acceleration;
 		double mass;
 };
