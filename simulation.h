@@ -8,11 +8,16 @@ class Simulation {
 		std::vector<double> displacement(Particle a, Particle b);
 		double distance(Particle a, Particle b);
 		std::vector<double> positionInBox(Particle a);
-		std::vector<double> internalForce(Particle a);
+		double totalEnergy();
+		double kineticEnergy();
+		double potentialEnergy();
+		void updateParticles(double timestep);
+		std::vector<std::vector<double>> internalForces();
 	private:
 		int dim;
 		double boxLength;
 		std::vector<Particle> particles;
-		std::vector<double> force(Particle a, Particle b);
+		double potential(Particle a, Particle b);
+		std::vector<double> interaction(Particle a, Particle b);
 		void wrapParticle(Particle a);
 };

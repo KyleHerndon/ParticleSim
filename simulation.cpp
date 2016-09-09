@@ -36,20 +36,80 @@ std::vector<double> Simulation::positionInBox(Particle a) {
 	return newPos;
 }
 
-std::vector<double> Simulation::internalForce(Particle a) {
-	std::vector<double> force = std::vector<double>(dim, 0);
+double Simulation::totalEnergy() {
+	return Simulation::kineticEnergy()+Simulation::potentialEnergy();
+}
+
+double Simulation::kineticEnergy() {
+	double ret = 0;
 	for (Particle particle : particles) {
-		if (&particle != &a) {
-			std::vector<double> temp = Simulation::force(a, particle);
-			for (int i = 0; i < dim; i++) {
-				force[i] += temp[i];
+		ret += particle.getEnergy();
+	}
+	return ret;
+}
+
+double Simulation::potentialEnergy() {
+	double ret = 0;
+	for (unsigned i = 0; i < particles.size(); i++) {
+		for (unsigned j = i +1; j < particles.size(); j++) {
+			ret+=Simulation::potential(particles[i], particles[j]);
+		}
+	}
+	return 2*ret;
+}
+
+void Simulation::updateParticles(double timestep) {
+	std::vector<std::vector<double>> forces = Simulation::internalForces();
+	for (unsigned i = 0; i < particles.size(); i++) {
+		std::vector<double> newPosition (dim, 0);
+		std::vector<double> newVelocity (dim, 0);
+		std::vector<double> newAcceleration (dim, 0);
+		std::vector<double> oldPosition = particles[i].getPosition();
+		std::vector<double> oldVelocity = particles[i].getVelocity();
+		std::vector<double> oldAcceleration = particles[i].getAcceleration();
+		for (int component = 0; component < dim; component++) {
+			newAcceleration[component] /= particles[i].getMass();
+			// Verlet Position
+			newPosition[component] = oldPosition[component] + oldVelocity[component]*timestep+
+				.5 * oldAcceleration[component] * pow(timestep, 2);
+			// Verlet Velocity
+			newVelocity[component] = oldVelocity[component] + 
+				.5 * (oldAcceleration[component] + newAcceleration[component]) * timestep;
+		}
+		particles[i].setPosition(newPosition);
+		particles[i].setVelocity(newVelocity);
+		particles[i].setAcceleration(newAcceleration);
+	}
+}
+
+std::vector<std::vector<double>> Simulation::internalForces() {
+	// calculating all the particle forces at once, so I can get a 2x speed up using
+	// Newton's 3rd Law
+	std::vector<std::vector<double>> forces = std::vector<std::vector<double>>(
+		particles.size(),std::vector<double>(dim, 0));
+	for (unsigned i = 0; i < particles.size(); i++) {
+		for (unsigned j = i+1; j < particles.size(); j++) {
+			std::vector<double> temp = Simulation::interaction(particles[i], particles[j]);
+			for (int component = 0; component < dim; component++) {
+				forces[i][component] += temp[component];
+				forces[j][component] -= temp[component];
 			}
 		}
 	}
-	return force;
+	return forces;
 }
 
-std::vector<double> Simulation::force(Particle a, Particle b) {
+double Simulation::potential(Particle a, Particle b) {
+	std::vector<double> displacement = Simulation::displacement(a,b);
+	double distance = 0;
+	for (double component : Simulation::displacement(a, b)) {
+		distance += std::pow(component, 2);
+	}
+	distance = std::sqrt(distance);
+	return 4 * (std::pow(1/distance, 12) + std::pow(1/distance, 6));
+}
+
+std::vector<double> Simulation::interaction(Particle a, Particle b) {
 	std::vector<double> displacement = Simulation::displacement(a,b);
 	double distance = 0;
 	for (double component : Simulation::displacement(a, b)) {
