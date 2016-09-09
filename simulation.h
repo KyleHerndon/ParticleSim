@@ -4,7 +4,7 @@
 
 class Simulation {
 	public:
-		Simulation(double l);
+		Simulation(int d, double l);
 		std::vector<double> getDisplacement(Particle a, Particle b);
 		double getDistance(Particle a, Particle b);
 		std::vector<double> positionInBox(Particle a);
@@ -12,5 +12,5 @@ class Simulation {
 		int dim;
 		double boxLength;
 		std::vector<Particle> particles;
-
-}
+		void wrapParticle(Particle a);
+};
