@@ -5,3 +5,6 @@ particle.o: particle.cpp particle.h
 
 simulation.o: simulation.cpp simulation.h
 	g++ -Wall -c simulation.cpp -std=c++11
+
+clean:
+	rm particle.o simulation.o
