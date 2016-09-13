@@ -28,7 +28,7 @@ double Simulation::distance(Particle a, Particle b) {
 	return std::sqrt(ret);
 }
 
-std::vector<double> Simulation::positionInBox(Particle a) {
+std::vector<double> Simulation::positionInBox(const Particle &a) {
 	std::vector<double> newPos = std::vector<double>();
 	for (double component : a.getPosition()) {
 		newPos.push_back((component > (boxLength / 2) ? boxLength-component : component));
@@ -124,6 +124,6 @@ std::vector<double> Simulation::interaction(Particle a, Particle b) {
 	return force;
 } 
 
-void Simulation::wrapParticle(Particle a) {
+void Simulation::wrapParticle(Particle &a) {
 	a.setPosition(Simulation::positionInBox(a));
 }

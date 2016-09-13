@@ -10,7 +10,7 @@ Particle::Particle(int dim, double m) {
 	mass = m;
 }
 
-std::vector<double> Particle::getPosition() {
+const std::vector<double> Particle::getPosition() {
 	return position;
 }
 
@@ -18,7 +18,7 @@ void Particle::setPosition(std::vector<double> pos) {
 	position = pos;
 }
 
-std::vector<double> Particle::getVelocity() {
+const std::vector<double> Particle::getVelocity() {
 	return velocity;
 }
 
@@ -26,7 +26,7 @@ void Particle::setVelocity(std::vector<double> vel) {
 	velocity = vel;
 }
 
-std::vector<double> Particle::getAcceleration() {
+const std::vector<double> Particle::getAcceleration() {
 	return acceleration;
 }
 

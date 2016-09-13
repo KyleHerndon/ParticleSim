@@ -5,19 +5,20 @@
 class Simulation {
 	public:
 		Simulation(int d, double l);
-		std::vector<double> displacement(Particle a, Particle b);
-		double distance(Particle a, Particle b);
-		std::vector<double> positionInBox(Particle a);
+		std::vector<double> displacement(Particle, Particle);
+		double distance(Particle, Particle);
+		std::vector<double> positionInBox(const Particle&);
 		double totalEnergy();
 		double kineticEnergy();
 		double potentialEnergy();
-		void updateParticles(double timestep);
+		void updateParticles(double);
 		std::vector<std::vector<double>> internalForces();
+		void addParticle(Particle);
 	private:
 		int dim;
 		double boxLength;
 		std::vector<Particle> particles;
-		double potential(Particle a, Particle b);
-		std::vector<double> interaction(Particle a, Particle b);
-		void wrapParticle(Particle a);
+		double potential(Particle, Particle);
+		std::vector<double> interaction(Particle, Particle);
+		void wrapParticle(Particle&);
 };
