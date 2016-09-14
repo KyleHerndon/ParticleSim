@@ -20,6 +20,45 @@ std::vector<double> Simulation::displacement(Particle a, Particle b) {
 	return v;
 }
 
+void Simulation::initCubic(unsigned n, double mass, double temperature) {
+	unsigned count = pow(n, 3);
+	particles.reserve(count);
+	double spacing = boxLength/n;
+	double offset = (n % 2 == 0 ) ? boxLength/(2*n) : 0;
+	std::vector<double> centerOfMass (dim, 0);
+	for (unsigned i = 0; i < n; i++) {
+		for (unsigned j = 0; j < n; j++) {
+			for (unsigned k = 0; k < n; k++) {
+				Particle p (3, mass);
+				p.setPosition(std::vector<double> 
+					({i * spacing + offset, j * spacing + offset, k * spacing + offset}));
+				p.setVelocity(std::vector<double>({rand()-.5, rand()-.5, rand()-.5}));
+				for (int c = 0; c < dim; c++) {
+					centerOfMass[c] += p.getVelocity()[c];
+				}
+				particles.push_back(p);
+			}
+		}
+	}
+	double total = 0;
+	for (Particle particle : particles) {
+		std::vector<double> v (dim, 0);
+		for (int c = 0; c < dim; c++) {
+			v[c] = particle.getVelocity()[c] - centerOfMass[c];
+			total += pow(particle.getVelocity()[c], 2);
+			particle.setVelocity(v);
+		}
+	}
+	total = sqrt(total);
+	for (Particle particle : particles) {
+		std::vector<double> v (dim,0);
+		for (int c = 0; c < dim; c++) {
+			v[c] = 3 * particle.getVelocity()[c] * count * temperature / (mass * total) ;
+		}
+		particle.setVelocity(v);
+	}
+}
+
 double Simulation::distance(Particle a, Particle b) {
 	double ret = 0;
 	for (double component : displacement(a, b)) {
@@ -28,10 +67,11 @@ double Simulation::distance(Particle a, Particle b) {
 	return std::sqrt(ret);
 }
 
-std::vector<double> Simulation::positionInBox(const Particle &a) {
-	std::vector<double> newPos = std::vector<double>();
-	for (double component : a.getPosition()) {
-		newPos.push_back((component > (boxLength / 2) ? boxLength-component : component));
+std::vector<double> Simulation::positionInBox(Particle &a) {
+	std::vector<double> newPos = std::vector<double>(dim, 0);
+	std::vector<double> pos = a.getPosition();
+	for (unsigned i = 0; i < pos.size(); i++) {
+		newPos[i] = (pos[i] > (boxLength / 2) ? boxLength-pos[i] : pos[i]);
 	}
 	return newPos;
 }
@@ -58,6 +98,10 @@ double Simulation::potentialEnergy() {
 	return 2*ret;
 }
 
+double Simulation::getLength() {
+	return boxLength;
+}
+
 void Simulation::updateParticles(double timestep) {
 	std::vector<std::vector<double>> forces = Simulation::internalForces();
 	for (unsigned i = 0; i < particles.size(); i++) {
@@ -79,6 +123,7 @@ void Simulation::updateParticles(double timestep) {
 		particles[i].setPosition(newPosition);
 		particles[i].setVelocity(newVelocity);
 		particles[i].setAcceleration(newAcceleration);
+		Simulation::wrapParticle(particles[i]);
 	}
 }
 
@@ -97,6 +142,10 @@ std::vector<std::vector<double>> Simulation::internalForces() {
 		}
 	}
 	return forces;
+}
+
+void Simulation::addParticle(Particle a){
+
 }
 
 double Simulation::potential(Particle a, Particle b) {
