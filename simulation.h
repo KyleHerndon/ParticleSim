@@ -1,10 +1,12 @@
 #include <vector>
 
 #include "particle.h"
+#include <fstream>
 
 class Simulation {
 	public:
 		Simulation(int d, double l);
+		std::vector<Particle> getParticles();
 		std::vector<double> displacement(Particle, Particle);
 		void initCubic(unsigned n, double temperature, double mass);
 		double distance(Particle, Particle);
@@ -15,7 +17,6 @@ class Simulation {
 		double getLength();
 		void updateParticles(double);
 		std::vector<std::vector<double>> internalForces();
-		void addParticle(Particle);
 	private:
 		int dim;
 		double boxLength;

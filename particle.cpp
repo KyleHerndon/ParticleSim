@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <cmath>
+#include <iostream>
 
 Particle::Particle(int dim, double m) {
 	position = std::vector<double>(dim, 0);
