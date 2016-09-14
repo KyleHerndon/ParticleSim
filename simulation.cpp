@@ -3,7 +3,7 @@
 #include <cmath>
 #include <math.h>
 #include <iostream>
-#include <fstream>
+
 #include <ctime>
 
 
@@ -77,11 +77,10 @@ std::vector<double> Simulation::displacement(Particle a, Particle b) {
 		double temp = b.getPosition()[i] - a.getPosition()[i];
 		if (temp < (boxLength / 2) && temp > -(boxLength / 2)) {
 			v[i] = temp;
+		} else if (temp <= boxLength / 2) {
+			v[i] = temp + boxLength;
 		} else {
-			v[i] = boxLength-temp;
-			v[i] += boxLength/2;
-			v[i] = fmod(v[i], boxLength);
-			v[i] -= boxLength/2;
+			v[i] = temp - boxLength;
 		}
 	}
 	return v;
@@ -89,19 +88,25 @@ std::vector<double> Simulation::displacement(Particle a, Particle b) {
 
 double Simulation::distance(Particle a, Particle b) {
 	double ret = 0;
-	for (double component : displacement(a, b)) {
+	std::vector<double> displacement = Simulation::displacement(a, b);
+	for (double component : displacement) {
 		ret += std::pow(component, 2);
 	}
+	//if (std::sqrt(ret) < 0.2) {
+	//	std::cout << std::sqrt(ret) << "\n";
+	//}
 	return std::sqrt(ret);
 }
 
 std::vector<double> Simulation::positionInBox(Particle &a) {
 	std::vector<double> newPos = a.getPosition();
 	for (unsigned i = 0; i < newPos.size(); i++) {
-		newPos[i] += boxLength / 2;
-		newPos[i] = (newPos[i] < 0) ? boxLength-newPos[i] : newPos[i];
-		newPos[i] = fmod(newPos[i], boxLength);
-		newPos[i] -= boxLength / 2;
+		if(newPos[i] < boxLength / 2) {
+			newPos[i] += boxLength;
+		}
+		if(newPos[i] >= boxLength / 2) {
+			newPos[i] -= boxLength;
+		}
 	}
 	return newPos;
 }
@@ -115,7 +120,6 @@ double Simulation::kineticEnergy() {
 	for (Particle &particle : particles) {
 		ret += particle.getEnergy();
 	}
-	std::cout << "kinetic: " << ret << "\n";
 	return ret;
 }
 
@@ -126,7 +130,6 @@ double Simulation::potentialEnergy() {
 			ret+=Simulation::potential(particles[i], particles[j]);
 		}
 	}
-	std::cout <<  "potential: " << ret << "\n";
 	return ret;
 }
 
@@ -135,27 +138,37 @@ double Simulation::getLength() {
 }
 
 void Simulation::updateParticles(double timestep) {
-	std::vector<std::vector<double>> forces = Simulation::internalForces();
 	for (unsigned i = 0; i < particles.size(); i++) {
 		std::vector<double> newPosition (dim, 0);
-		std::vector<double> newVelocity (dim, 0);
-		std::vector<double> newAcceleration (dim, 0);
+		
 		std::vector<double> oldPosition = particles[i].getPosition();
 		std::vector<double> oldVelocity = particles[i].getVelocity();
 		std::vector<double> oldAcceleration = particles[i].getAcceleration();
 		for (int component = 0; component < dim; component++) {
-			newAcceleration[component] = forces[i][component] / particles[i].getMass();
 			// Verlet Position
 			newPosition[component] = oldPosition[component] + oldVelocity[component]*timestep+
 				.5 * oldAcceleration[component] * pow(timestep, 2);
+		}
+		particles[i].setPosition(newPosition);
+		Simulation::wrapParticle(particles[i]);
+	}
+
+	std::vector<std::vector<double>> forces = Simulation::internalForces();
+
+	for (unsigned i = 0; i < particles.size(); i++) {
+		std::vector<double> newVelocity (dim, 0);
+		std::vector<double> newAcceleration (dim, 0);
+		std::vector<double> oldVelocity = particles[i].getVelocity();
+		std::vector<double> oldAcceleration = particles[i].getAcceleration();
+		for (int component = 0; component < dim; component++) {
+			// Verlet Acceleration
+			newAcceleration[component] = forces[i][component] / particles[i].getMass();
 			// Verlet Velocity
 			newVelocity[component] = oldVelocity[component] + 
 				.5 * (oldAcceleration[component] + newAcceleration[component]) * timestep;
 		}
-		particles[i].setPosition(newPosition);
 		particles[i].setVelocity(newVelocity);
 		particles[i].setAcceleration(newAcceleration);
-		Simulation::wrapParticle(particles[i]);
 	}
 }
 
@@ -190,7 +203,7 @@ double Simulation::potential(Particle a, Particle b) {
 std::vector<double> Simulation::interaction(Particle a, Particle b) {
 	std::vector<double> displacement = Simulation::displacement(a, b);
 	double distance = Simulation::distance(a, b);
-	double f = -24 * (2*std::pow(1/distance, 13) - std::pow(1/distance, 7));
+	double f = -24 * (2/std::pow(distance, 13) - 1/std::pow(distance, 7));
 	std::vector<double> force = std::vector<double>();
 	for (double component : displacement) {
 		force.push_back(component * f / distance);

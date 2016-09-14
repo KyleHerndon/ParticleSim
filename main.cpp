@@ -2,22 +2,23 @@
 #include <cmath>
 #include <stdlib.h>
 #include <iostream>
+#include <fstream>
 #include <math.h>
  
 
 #include "simulation.h"
 
-static void print_particle(Particle a) {
-	std::cout << "(";
-	for (double i : a.getPosition()) {
-		std::cout << i << " ";
+static void print_particle(std::ofstream &output, Particle a) {
+	for (unsigned i = 0; i < a.getPosition().size(); i++) {
+		output << " " << a.getPosition()[i];
 	}
-	std::cout << ")\n";
+	output << "\n";
 }
 
-static void print_particles(std::vector<Particle> particles) {
-	for (Particle &particle : particles) {
-		print_particle(particle);
+static void print_particles(std::ofstream &output, std::vector<Particle> particles) {
+	for (unsigned i = 0; i < particles.size(); i++) {
+		output << i;
+		print_particle(output, particles[i]);
 	}
 }
 
@@ -30,11 +31,18 @@ int main() {
 	Simulation sim = Simulation(dimensions, boxLength);
 	sim.initCubic(n, temperature, mass);
 	std::cout << sim.totalEnergy() << "\n";
-	print_particles(std::vector<Particle> ());
-	//print_particles(sim.getParticles());
+
+	std::ofstream output;
+	output.open("trajectory.xyz");
+
+	output << n*n*n << "\n"; //header
+
+	print_particles(output, sim.getParticles());
 	for (int i = 0; i < 1000; i++) {
-		sim.updateParticles(0.001);
+		sim.updateParticles(.01);
+		print_particles(output, sim.getParticles());
 	}
+	output.close();
+	
 	std::cout << sim.totalEnergy() << "\n";
-	//print_particles(sim.getParticles());
 }
